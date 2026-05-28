@@ -16,6 +16,18 @@ def create_app():
     # Auto-create tables on startup (works for both SQLite locally and PostgreSQL on Render)
     with app.app_context():
         db.create_all()
+        
+        # Auto-create default admin if none exists (Fix for Render free tier lack of shell)
+        from app.models import Admin
+        from werkzeug.security import generate_password_hash
+        if not Admin.query.first():
+            admin_email = os.environ.get('ADMIN_EMAIL', 'admin@zikani.com')
+            admin_pass = os.environ.get('ADMIN_PASSWORD', 'admin123')
+            hashed_pw = generate_password_hash(admin_pass, method='pbkdf2:sha256')
+            default_admin = Admin(email=admin_email, password_hash=hashed_pw)
+            db.session.add(default_admin)
+            db.session.commit()
+            print(f"✅ Default admin created: {admin_email}")
 
     # Register your blueprints
     from app.routes import api_bp
