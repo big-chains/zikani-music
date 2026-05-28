@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIKANI | Official Music Artist Website</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        display: ['Syncopate', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: '#121418',
+                        card: '#1e2128',
+                        accent: '#4cdbb0', // The mint green from the reference
+                    }
+                }
+            }
+        }
+
+    </script>
+    <style>
+        body {
+            background-color: #121418;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Original Background Outline */
+        .text-outline {
+            color: transparent;
+            -webkit-text-stroke: 2px #ffffff;
+            opacity: 0.3;
+        }
+
+        /* NEW: Opaque outline for the letters in FRONT of the image */
+        .text-outline-front {
+            color: transparent;
+            -webkit-text-stroke: 2px #ffffff;
+            opacity: 1;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Infinite Marquee Animation */
+        .marquee-container {
+            width: 100vw;
+            overflow: hidden;
+            white-space: nowrap;
+            background-color: #4cdbb0;
+            color: #121418;
+            padding: 15px 0;
+            transform: rotate(-2deg) scale(1.05);
+
+            /* CHANGED: Negative top margin pulls it up into the viewport */
+            margin: -50px 0 60px 0;
+
+            box-shadow: 0 10px 30px rgba(76, 219, 176, 0.2);
+
+            /* NEW: Ensures it sits visually on top of the hero section elements */
+            position: relative;
+            z-index: 40;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Image Masking for Hero */
+        .hero-img-mask {
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #121418;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4cdbb0;
+            border-radius: 4px;
+        }
+
+        /* Shimmer Loading Effect */
+        .shimmer {
+            background: #1e2128;
+            background-image: linear-gradient(to right, #1e2128 0%, #2b2f38 20%, #1e2128 40%, #1e2128 100%);
+            background-repeat: no-repeat;
+            background-size: 1000px 100%;
+            animation: shimmer-animation 2s infinite linear forwards;
+        }
+
+        @keyframes shimmer-animation {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+    </style>
+</head>
+
+<body class="antialiased selection:bg-accent selection:text-dark">
+
+    <nav class="fixed w-full z-50 glass border-b-0 border-white/5 py-4 px-6 md:px-12 flex justify-between items-center transition-all">
+        <div class="text-2xl font-display font-bold tracking-wider">
+            ZIK<span class="text-accent">ANI.</span>
+        </div>
+        <ul class="hidden md:flex space-x-8 font-semibold text-sm uppercase tracking-widest text-gray-300">
+            <li><a href="#about" class="hover:text-accent transition">About</a></li>
+            <li><a href="#music" class="hover:text-accent transition">Music</a></li>
+            <li><a href="#tour" class="hover:text-accent transition">Tour</a></li>
+            <li><a href="#merch" class="hover:text-accent transition">Merch</a></li>
+        </ul>
+        <div class="flex items-center gap-4">
+            <!-- Cart Icon -->
+            <button id="cart-toggle" onclick="toggleCart()" class="relative w-10 h-10 glass rounded-full flex items-center justify-center hover:text-accent hover:-translate-y-0.5 transition-all" aria-label="Open cart">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span id="cart-badge" class="hidden absolute -top-1 -right-1 bg-accent text-dark text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+            </button>
+            <a href="#contact" class="bg-accent text-dark px-6 py-2 rounded-full font-bold uppercase tracking-wide hover:bg-white hover:shadow-[0_0_15px_#4cdbb0] transition-all">
+                Book Now
+            </a>
+        </div>
+    </nav>
+
+    <header class="relative h-screen min-h-[700px] w-full flex flex-col justify-end pb-24 pt-24 overflow-hidden">
+
+        <div class="absolute inset-0 grid place-items-center z-10 pt-16 pointer-events-none">
+
+            <div class="col-start-1 row-start-1 text-center w-full flex flex-col items-center leading-none select-none z-0">
+                <h1 class="font-display font-bold text-[12vw] whitespace-nowrap">
+                    <span class="text-outline">Z</span><span class="text-outline opacity-0">I</span><span class="text-outline">K</span><span class="text-outline opacity-0">A</span><span class="text-outline">N</span><span class="text-outline opacity-0">I</span>
+                </h1>
+                <h1 class="font-display font-bold text-[15vw] mt-[-4vw] whitespace-nowrap">
+                    <span class="text-accent opacity-0">M</span><span class="text-accent opacity-40">A</span><span class="text-accent opacity-0">L</span><span class="text-accent opacity-40">A</span><span class="text-accent opacity-0">W</span><span class="text-accent opacity-40">I</span>
+                </h1>
+            </div>
+
+            <img src="zikan.png" class="col-start-1 row-start-1 z-10 h-[55vh] md:h-[65vh] lg:h-[70vh] w-auto object-contain hero-img-mask" alt="Zikani">
+
+            <div class="col-start-1 row-start-1 text-center w-full flex flex-col items-center leading-none select-none z-20">
+                <h1 class="font-display font-bold text-[12vw] whitespace-nowrap drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
+                    <span class="text-outline-front opacity-0">Z</span><span class="text-outline-front">I</span><span class="text-outline-front opacity-0">K</span><span class="text-outline-front">A</span><span class="text-outline-front opacity-0">N</span><span class="text-outline-front">I</span>
+                </h1>
+                <h1 class="font-display font-bold text-[15vw] mt-[-4vw] whitespace-nowrap drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
+                    <span class="text-accent">M</span><span class="text-accent opacity-0">A</span><span class="text-accent">L</span><span class="text-accent opacity-0">A</span><span class="text-accent">W</span><span class="text-accent opacity-0">I</span>
+                </h1>
+            </div>
+
+        </div>
+
+        <div class="relative z-30 flex flex-wrap gap-4 justify-center mt-auto pointer-events-auto">
+            <a href="#music" class="bg-accent text-dark px-8 py-3 rounded-full font-bold uppercase tracking-wide hover:bg-white transition-all shadow-[0_0_20px_rgba(76,219,176,0.3)]">
+                <i class="fa-brands fa-spotify mr-2"></i> Listen Now
+            </a>
+            <a href="#tour" class="glass px-8 py-3 rounded-full font-bold uppercase tracking-wide hover:bg-white/10 transition-all">
+                Buy Tickets
+            </a>
+        </div>
+    </header>
+
+    <div class="marquee-container">
+        <div class="marquee-content">
+            ✦ AFRO-FUTURIST RHYTHMS ✦ MALAWI TO THE WORLD ✦ NEW SINGLE OUT NOW ✦ STREAM ON ALL PLATFORMS ✦ AFRO-FUTURIST RHYTHMS ✦ MALAWI TO THE WORLD ✦ NEW SINGLE OUT NOW ✦ STREAM ON ALL PLATFORMS ✦
+        </div>
+    </div>
+
+    <section id="about" class="py-20 px-6 max-w-5xl mx-auto text-center relative">
+        <h2 class="text-4xl md:text-5xl font-display font-bold mb-8 tracking-wider">O HAC <br><span class="text-accent text-xl">(ABOUT THE ARTIST)</span></h2>
+        <p class="text-gray-400 text-lg md:text-xl leading-relaxed font-light mx-auto max-w-3xl glass p-8 rounded-3xl">
+            Zikani is a visionary artist from Blantyre, Malawi, blending traditional Gule Wamkulu rhythms with cutting-edge Afro-beats and futuristic electronic soundscapes. Breaking boundaries and redefining the African sound, Zikani's music is a journey into the future of global music.
+        </p>
+    </section>
+
+    <section id="music" class="py-20 px-6 max-w-7xl mx-auto">
+        <h2 class="text-4xl font-display font-bold mb-12 text-center uppercase">Projects & Releases</h2>
+
+        <div id="music-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="glass rounded-3xl overflow-hidden shimmer" style="height: 380px;"></div>
+            <div class="glass rounded-3xl overflow-hidden shimmer hidden md:block" style="height: 380px;"></div>
+            <div class="glass rounded-3xl overflow-hidden shimmer hidden lg:block" style="height: 380px;"></div>
+        </div>
+    </section>
+
+    <section id="tour" class="py-20 px-6 bg-card/30">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-4xl font-display font-bold mb-12 text-center uppercase">Live Events</h2>
+
+            <div id="tour-grid" class="flex flex-col gap-4">
+                <div class="glass rounded-2xl h-32 shimmer w-full"></div>
+                <div class="glass rounded-2xl h-32 shimmer w-full"></div>
+                <div class="glass rounded-2xl h-32 shimmer w-full hidden md:block"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="merch" class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="flex justify-between items-end mb-12">
+            <h2 class="text-4xl font-display font-bold uppercase">Official Merch</h2>
+            <a href="#" class="text-accent hover:text-white transition-colors border-b border-accent pb-1">View All Store</a>
+        </div>
+
+        <div id="merch-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass rounded-2xl p-4 flex flex-col group h-96 shimmer"></div>
+            <div class="glass rounded-2xl p-4 flex flex-col group h-96 shimmer hidden sm:flex"></div>
+            <div class="glass rounded-2xl p-4 flex flex-col group h-96 shimmer hidden lg:flex"></div>
+            <div class="glass rounded-2xl p-4 flex flex-col group h-96 shimmer hidden lg:flex"></div>
+        </div>
+    </section>
+
+    <section id="contact" class="py-20 px-6 bg-gradient-to-b from-transparent to-card/50 border-t border-white/5">
+        <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+
+            <div class="glass p-8 rounded-3xl">
+                <h3 class="text-2xl font-bold mb-4"><i class="fa-solid fa-bolt text-accent mr-2"></i> Join the Core</h3>
+                <p class="text-gray-400 mb-6 text-sm">Sign up for the mailing list to get exclusive unreleased tracks, early ticket access, and merch discounts.</p>
+                <form id="subscribe-form" class="flex flex-col gap-3">
+                    <input type="email" id="sub-email" placeholder="ENTER YOUR EMAIL" class="bg-dark border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent transition-colors" required>
+                    <button type="submit" class="bg-accent text-dark font-bold py-3 rounded-lg hover:bg-white transition-colors uppercase tracking-widest">Subscribe</button>
+                </form>
+            </div>
+
+            <div class="glass p-8 rounded-3xl">
+                <h3 class="text-2xl font-bold mb-4">Booking & Inquiries</h3>
+                <p class="text-gray-400 mb-6 text-sm">For features, live shows, and press inquiries, reach out to the management team.</p>
+                <form id="contact-form" class="flex flex-col gap-3">
+                    <input type="text" id="contact-name" placeholder="NAME / AGENCY" class="bg-dark border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent transition-colors" required>
+                    <input type="email" id="contact-email" placeholder="YOUR EMAIL ADDRESS" class="bg-dark border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent transition-colors" required>
+                    <textarea id="contact-message" placeholder="MESSAGE" rows="3" class="bg-dark border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent transition-colors resize-none" required></textarea>
+                    <button type="submit" id="contact-submit-btn" class="glass font-bold py-3 rounded-lg hover:bg-white/10 transition-colors uppercase tracking-widest text-accent">Send Message</button>
+                </form>
+                <p id="contact-feedback" class="hidden text-center text-sm mt-3"></p>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="bg-dark py-12 border-t border-white/5 text-center">
+        <div class="flex justify-center space-x-6 mb-8">
+            <a href="#" class="w-12 h-12 glass rounded-full flex items-center justify-center text-xl hover:text-accent hover:-translate-y-1 transition-all"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="w-12 h-12 glass rounded-full flex items-center justify-center text-xl hover:text-accent hover:-translate-y-1 transition-all"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" class="w-12 h-12 glass rounded-full flex items-center justify-center text-xl hover:text-accent hover:-translate-y-1 transition-all"><i class="fa-brands fa-youtube"></i></a>
+            <a href="#" class="w-12 h-12 glass rounded-full flex items-center justify-center text-xl hover:text-accent hover:-translate-y-1 transition-all"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="#" class="w-12 h-12 glass rounded-full flex items-center justify-center text-xl hover:text-accent hover:-translate-y-1 transition-all"><i class="fa-brands fa-spotify"></i></a>
+        </div>
+
+        <div class="text-2xl font-display font-bold tracking-wider mb-4 opacity-50">
+            ZIK<span class="text-accent">ANI.</span>
+        </div>
+
+        <div class="flex justify-center space-x-4 text-xs text-gray-500 mb-4">
+            <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+            <span>|</span>
+            <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+        </div>
+
+        <p class="text-xs text-gray-600">&copy; 2026 Zikani Music. All rights reserved. Built in Blantyre.</p>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CART DRAWER
+    ════════════════════════════════════════════════════════════ -->
+
+    <!-- Overlay -->
+    <div id="cart-overlay" onclick="toggleCart()" class="fixed inset-0 bg-black/60 z-[60] hidden backdrop-blur-sm"></div>
+
+    <!-- Drawer -->
+    <aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-sm z-[70] flex flex-col
+                                   translate-x-full transition-transform duration-300 ease-in-out"
+           style="background:#1e2128;border-left:1px solid rgba(255,255,255,0.08);">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-5 border-b border-white/10">
+            <h2 class="text-lg font-bold uppercase tracking-widest"><i class="fa-solid fa-bag-shopping text-accent mr-2"></i>Your Cart</h2>
+            <button onclick="toggleCart()" class="w-8 h-8 rounded-full glass flex items-center justify-center hover:text-accent transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Items -->
+        <div id="cart-items" class="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-5 border-t border-white/10">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-gray-400 text-sm uppercase tracking-widest">Total</span>
+                <span id="cart-total" class="text-xl font-bold text-accent">MWK 0</span>
+            </div>
+            <button onclick="checkoutCart()" id="cart-checkout-btn"
+                    class="w-full bg-accent text-dark font-bold py-3 rounded-full uppercase tracking-widest hover:bg-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled>
+                Proceed to Checkout
+            </button>
+            <p class="text-center text-xs text-gray-600 mt-3">Secure payment via Flutterwave</p>
+        </div>
+    </aside>
+
+</body>
+<script src="/js/landing.js?v=4"></script>
+
+</html>

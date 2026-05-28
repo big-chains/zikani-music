@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIKANI | Management Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                fontFamily: { sans: ['Outfit', 'sans-serif'], display: ['Syncopate', 'sans-serif'] },
+                colors: { dark: '#121418', card: '#1e2128', accent: '#4cdbb0' }
+            }}
+        }
+    </script>
+    <style>
+        body { background: #121418; font-family: 'Outfit', sans-serif; }
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.07); }
+        .active-nav { border-left: 3px solid #4cdbb0; background: rgba(76,219,176,0.08); color: #4cdbb0; }
+        .nav-item { border-left: 3px solid transparent; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .input-field {
+            width: 100%; background: #0d0f12; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 10px 14px; color: white; outline: none; transition: border-color 0.2s;
+        }
+        .input-field:focus { border-color: #4cdbb0; }
+        .input-field::placeholder { color: #4b5563; }
+        select.input-field option { background: #1e2128; }
+
+        /* Toast notification */
+        #toast { transition: opacity 0.4s ease, transform 0.4s ease; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+        #toast.hide { opacity: 0; transform: translateY(20px); }
+
+        /* Card hover */
+        .content-card { transition: border-color 0.2s, transform 0.2s; }
+        .content-card:hover { border-color: rgba(76,219,176,0.3); transform: translateY(-2px); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #121418; }
+        ::-webkit-scrollbar-thumb { background: #2b2f38; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4cdbb0; }
+
+        /* Skeleton loader */
+        .skeleton { background: linear-gradient(90deg, #1e2128 25%, #2b2f38 50%, #1e2128 75%);
+            background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: 8px; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body class="text-gray-200 min-h-screen">
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="fixed left-0 top-0 h-full w-60 bg-card border-r border-white/5 z-50 flex flex-col">
+    <div class="p-6 border-b border-white/5">
+        <div class="text-xl font-display font-bold text-accent tracking-tight">ZIKANI.</div>
+        <div class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Admin Console</div>
+    </div>
+
+    <nav class="flex-1 py-4">
+        <p class="text-xs text-gray-600 px-4 mb-2 uppercase tracking-widest">Content</p>
+        <a href="#" onclick="switchTab('videos'); return false;"
+            class="nav-item active-nav flex items-center gap-3 px-4 py-3 text-sm font-medium" id="nav-videos">
+            <i class="fa-solid fa-video w-5 text-center"></i> Videos & Music
+        </a>
+        <a href="#" onclick="switchTab('events'); return false;"
+            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium" id="nav-events">
+            <i class="fa-solid fa-calendar-days w-5 text-center"></i> Live Events
+        </a>
+        <a href="#" onclick="switchTab('products'); return false;"
+            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium" id="nav-products">
+            <i class="fa-solid fa-shirt w-5 text-center"></i> Merch & Store
+        </a>
+    </nav>
+
+    <div class="p-4 border-t border-white/5">
+        <div id="admin-name-display" class="text-xs text-gray-500 mb-3 truncate">
+            <i class="fa-solid fa-circle-user mr-1"></i> <span id="admin-email-label">Admin</span>
+        </div>
+        <button onclick="logout()"
+            class="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-sm transition-all">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+        </button>
+    </div>
+</aside>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="ml-60 min-h-screen">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 bg-dark/80 backdrop-blur-md border-b border-white/5 px-8 py-4 flex justify-between items-center">
+        <div>
+            <h1 id="page-title" class="text-xl font-bold">Videos & Music</h1>
+            <p id="page-subtitle" class="text-xs text-gray-500 mt-0.5">Manage release links, YouTube videos, and Spotify tracks</p>
+        </div>
+        <button onclick="openModal()"
+            class="bg-accent text-dark font-bold px-5 py-2 rounded-lg hover:bg-white transition-all text-sm flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Add New
+        </button>
+    </header>
+
+    <!-- Content Area -->
+    <div class="p-8">
+        <!-- Stats Bar -->
+        <div id="stats-bar" class="grid grid-cols-3 gap-4 mb-8">
+            <div class="glass rounded-xl p-4 text-center">
+                <div id="stat-count" class="text-3xl font-bold text-accent">—</div>
+                <div class="text-xs text-gray-500 mt-1 uppercase tracking-widest" id="stat-label">Items</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center col-span-2 flex items-center justify-center">
+                <p class="text-xs text-gray-500">Content posted here appears live on the <a href="/" target="_blank" class="text-accent hover:underline">Zikani website →</a></p>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="data-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Skeleton loaders shown on load -->
+            <div class="skeleton h-40"></div>
+            <div class="skeleton h-40"></div>
+            <div class="skeleton h-40"></div>
+        </div>
+    </div>
+</main>
+
+<!-- ========== MODAL ========== -->
+<div id="modal" class="fixed inset-0 bg-black/80 hidden z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-card w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+        <div class="flex justify-between items-center p-6 border-b border-white/5">
+            <h2 id="modal-title" class="text-lg font-bold text-accent">Add Item</h2>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-white text-xl transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form id="content-form" onsubmit="handleFormSubmit(event)" class="p-6">
+            <div id="form-fields" class="space-y-4"></div>
+            <div class="flex justify-end mt-6 gap-3 border-t border-white/5 pt-6">
+                <button type="button" onclick="closeModal()"
+                    class="px-5 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" id="submit-btn"
+                    class="bg-accent text-dark font-bold px-6 py-2 rounded-lg hover:bg-white transition-all text-sm">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div id="toast" class="fixed bottom-6 right-6 z-[200] hide">
+    <div id="toast-inner" class="flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-medium border">
+        <i id="toast-icon" class="fa-solid fa-check-circle"></i>
+        <span id="toast-msg"></span>
+    </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+    // ——— Auth Guard ———
+    const token = localStorage.getItem('admin_token');
+    if (!token) window.location.href = '/admin';
+
+    function logout() {
+        localStorage.removeItem('admin_token');
+        window.location.href = '/admin';
+    }
+
+    // Show email in sidebar
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // admin_id available but no email in token; show generic label
+    } catch(e) {}
+
+    // ——— State ———
+    let currentTab = 'videos';
+    let editingId = null;
+    let currentData = [];
+
+    const tabConfig = {
+        videos: {
+            title: 'Videos & Music',
+            subtitle: 'Manage YouTube videos, Spotify release links, and thumbnails',
+            icon: 'fa-video'
+        },
+        events: {
+            title: 'Live Events',
+            subtitle: 'Add upcoming concerts, shows and ticket prices',
+            icon: 'fa-calendar-days'
+        },
+        products: {
+            title: 'Merch & Store',
+            subtitle: 'Manage official merchandise, prices and stock levels',
+            icon: 'fa-shirt'
+        }
+    };
+
+    // ——— Init ———
+    document.addEventListener('DOMContentLoaded', () => switchTab('videos'));
+
+    // ——— Tab Switching ———
+    async function switchTab(tab) {
+        currentTab = tab;
+        const cfg = tabConfig[tab];
+
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
+        document.getElementById(`nav-${tab}`).classList.add('active-nav');
+
+        document.getElementById('page-title').innerText = cfg.title;
+        document.getElementById('page-subtitle').innerText = cfg.subtitle;
+
+        await loadData();
+    }
+
+    // ——— Load & Render Data ———
+    async function loadData() {
+        const container = document.getElementById('data-container');
+        container.innerHTML = `
+            <div class="skeleton h-40"></div>
+            <div class="skeleton h-40"></div>
+            <div class="skeleton h-40"></div>`;
+
+        const data = await api.request(`/${currentTab}`);
+        currentData = data || [];
+
+        document.getElementById('stat-count').innerText = currentData.length;
+        document.getElementById('stat-label').innerText = tabConfig[currentTab].title;
+
+        container.innerHTML = '';
+
+        if (currentData.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-20 text-gray-600">
+                    <i class="fa-solid ${tabConfig[currentTab].icon} text-4xl mb-4 block opacity-30"></i>
+                    <p class="text-lg font-medium">No ${tabConfig[currentTab].title} yet</p>
+                    <p class="text-sm mt-1">Click <strong class="text-accent">Add New</strong> to get started.</p>
+                </div>`;
+            return;
+        }
+
+        currentData.forEach(item => renderCard(item, container));
+    }
+
+    function renderCard(item, container) {
+        const card = document.createElement('div');
+        card.className = 'content-card glass rounded-xl border border-white/5 overflow-hidden';
+
+        if (currentTab === 'videos') {
+            const platformIcon = item.platform === 'YouTube'
+                ? '<i class="fa-brands fa-youtube text-red-500"></i>'
+                : item.platform === 'Spotify'
+                    ? '<i class="fa-brands fa-spotify text-green-400"></i>'
+                    : '<i class="fa-brands fa-apple"></i>';
+            card.innerHTML = `
+                <div class="h-36 bg-dark flex items-center justify-center relative overflow-hidden">
+                    ${item.thumbnail
+                        ? `<img src="${item.thumbnail}" class="w-full h-full object-cover opacity-70" alt="${item.title}">`
+                        : '<i class="fa-solid fa-music text-4xl text-gray-700"></i>'}
+                    <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded text-xs flex items-center gap-1">
+                        ${platformIcon} ${item.platform}
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold truncate mb-1">${item.title}</h3>
+                    <a href="${item.url}" target="_blank" class="text-xs text-accent hover:underline truncate block">${item.url}</a>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="editItem(${item.id})"
+                            class="flex-1 text-xs py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button onclick="deleteItem(${item.id})"
+                            class="flex-1 text-xs py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>`;
+
+        } else if (currentTab === 'events') {
+            const dateStr = new Date(item.date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}).toUpperCase();
+            const isPast = new Date(item.date) < new Date();
+            card.innerHTML = `
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-bold text-accent">${dateStr}</span>
+                        ${isPast ? '<span class="text-xs bg-gray-500/20 text-gray-400 px-2 py-0.5 rounded-full">Past</span>' : '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Upcoming</span>'}
+                    </div>
+                    <h3 class="font-bold text-lg mb-1">${item.title}</h3>
+                    <p class="text-sm text-gray-400 mb-1"><i class="fa-solid fa-location-dot mr-1 text-accent/60"></i>${item.location}</p>
+                    <p class="text-sm font-bold text-accent">MWK ${Number(item.price).toLocaleString()}</p>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="editItem(${item.id})"
+                            class="flex-1 text-xs py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button onclick="deleteItem(${item.id})"
+                            class="flex-1 text-xs py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>`;
+
+        } else if (currentTab === 'products') {
+            const inStock = item.stock > 0;
+            card.innerHTML = `
+                <div class="h-40 bg-dark flex items-center justify-center relative overflow-hidden">
+                    ${item.image
+                        ? `<img src="${item.image}" class="w-full h-full object-cover opacity-80" alt="${item.name}">`
+                        : '<i class="fa-solid fa-shirt text-4xl text-gray-700"></i>'}
+                    <div class="absolute top-2 right-2">
+                        <span class="text-xs px-2 py-1 rounded-full font-bold ${inStock ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                            ${inStock ? `${item.stock} in stock` : 'Out of stock'}
+                        </span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold truncate mb-1">${item.name}</h3>
+                    <p class="text-accent font-bold text-sm">MWK ${Number(item.price).toLocaleString()}</p>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="editItem(${item.id})"
+                            class="flex-1 text-xs py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button onclick="deleteItem(${item.id})"
+                            class="flex-1 text-xs py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>`;
+        }
+
+        container.appendChild(card);
+    }
+
+    // ——— Modal ———
+    function openModal(item = null) {
+        editingId = item ? item.id : null;
+        document.getElementById('modal-title').innerText = item
+            ? `Edit ${tabConfig[currentTab].title.split(' ')[0]}`
+            : `Add ${tabConfig[currentTab].title.split(' ')[0]}`;
+
+        const fields = document.getElementById('form-fields');
+
+        if (currentTab === 'videos') {
+            fields.innerHTML = `
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Video / Release Title *</label>
+                    <input type="text" id="f-title" placeholder="e.g. Mvula — Official Video" class="input-field" value="${item?.title || ''}" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Platform *</label>
+                    <select id="f-platform" class="input-field">
+                        <option value="YouTube" ${item?.platform==='YouTube'?'selected':''}>YouTube</option>
+                        <option value="Spotify" ${item?.platform==='Spotify'?'selected':''}>Spotify</option>
+                        <option value="Apple Music" ${item?.platform==='Apple Music'?'selected':''}>Apple Music</option>
+                        <option value="SoundCloud" ${item?.platform==='SoundCloud'?'selected':''}>SoundCloud</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Link / URL *</label>
+                    <input type="url" id="f-url" placeholder="https://youtube.com/watch?v=..." class="input-field" value="${item?.url || ''}" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Thumbnail URL (optional)</label>
+                    <input type="url" id="f-thumb" placeholder="https://img.youtube.com/vi/.../hqdefault.jpg" class="input-field" value="${item?.thumbnail || ''}">
+                    <p class="text-xs text-gray-600 mt-1">For YouTube: https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg</p>
+                </div>`;
+
+        } else if (currentTab === 'events') {
+            let dateVal = '';
+            if (item?.date) {
+                const d = new Date(item.date);
+                dateVal = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            }
+            fields.innerHTML = `
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Event Title *</label>
+                    <input type="text" id="f-title" placeholder="e.g. Zikani Live @ BCA" class="input-field" value="${item?.title || ''}" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Date & Time *</label>
+                    <input type="datetime-local" id="f-date" class="input-field" value="${dateVal}" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Venue / Location *</label>
+                    <input type="text" id="f-location" placeholder="e.g. Blantyre Cultural Center" class="input-field" value="${item?.location || ''}" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Ticket Price (MWK) *</label>
+                    <input type="number" id="f-price" placeholder="e.g. 5000" class="input-field" value="${item?.price || ''}" min="0" required>
+                </div>`;
+
+        } else if (currentTab === 'products') {
+            fields.innerHTML = `
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Product Name *</label>
+                    <input type="text" id="f-name" placeholder="e.g. Zikani Tour Tee — Black" class="input-field" value="${item?.name || ''}" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Price (MWK) *</label>
+                        <input type="number" id="f-price" placeholder="e.g. 15000" class="input-field" value="${item?.price || ''}" min="0" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Stock Qty *</label>
+                        <input type="number" id="f-stock" placeholder="e.g. 50" class="input-field" value="${item?.stock || ''}" min="0" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-1 block">Product Image URL (optional)</label>
+                    <input type="url" id="f-image" placeholder="https://example.com/image.jpg" class="input-field" value="${item?.image || ''}">
+                </div>`;
+        }
+
+        document.getElementById('modal').classList.remove('hidden');
+        document.querySelector('#form-fields input, #form-fields select')?.focus();
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+        document.getElementById('content-form').reset();
+        editingId = null;
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modal')) closeModal();
+    });
+
+    // ——— Form Submit ———
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        btn.innerText = 'Saving...';
+        btn.disabled = true;
+
+        let data = {};
+        if (currentTab === 'videos') {
+            data = {
+                title: document.getElementById('f-title').value,
+                platform: document.getElementById('f-platform').value,
+                url: document.getElementById('f-url').value,
+                thumbnail: document.getElementById('f-thumb').value || null
+            };
+        } else if (currentTab === 'events') {
+            data = {
+                title: document.getElementById('f-title').value,
+                date: new Date(document.getElementById('f-date').value).toISOString(),
+                location: document.getElementById('f-location').value,
+                price: parseFloat(document.getElementById('f-price').value)
+            };
+        } else if (currentTab === 'products') {
+            data = {
+                name: document.getElementById('f-name').value,
+                price: parseFloat(document.getElementById('f-price').value),
+                stock: parseInt(document.getElementById('f-stock').value),
+                image: document.getElementById('f-image').value || null
+            };
+        }
+
+        const method = editingId ? 'PUT' : 'POST';
+        const endpoint = editingId ? `/${currentTab}/${editingId}` : `/${currentTab}`;
+
+        const result = await api.request(endpoint, method, data);
+        btn.innerText = 'Save Changes';
+        btn.disabled = false;
+
+        if (result) {
+            closeModal();
+            showToast('✅ Saved successfully!', 'success');
+            loadData();
+        } else {
+            showToast('❌ Failed to save. Check console.', 'error');
+        }
+    }
+
+    // ——— Edit ———
+    function editItem(id) {
+        const item = currentData.find(i => i.id === id);
+        if (item) openModal(item);
+    }
+
+    // ——— Delete ———
+    async function deleteItem(id) {
+        if (!confirm('Delete this item? It will be removed from the website immediately.')) return;
+        const result = await api.request(`/${currentTab}/${id}`, 'DELETE');
+        if (result) {
+            showToast('🗑️ Deleted successfully!', 'success');
+            loadData();
+        } else {
+            showToast('❌ Could not delete item.', 'error');
+        }
+    }
+
+    // ——— Toast ———
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        clearTimeout(toastTimer);
+        const toast = document.getElementById('toast');
+        const inner = document.getElementById('toast-inner');
+        document.getElementById('toast-msg').innerText = msg;
+
+        if (type === 'success') {
+            inner.className = 'flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-medium border bg-green-500/10 border-green-500/30 text-green-300';
+        } else {
+            inner.className = 'flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-medium border bg-red-500/10 border-red-500/30 text-red-300';
+        }
+
+        toast.className = 'fixed bottom-6 right-6 z-[200] show';
+        toastTimer = setTimeout(() => toast.className = 'fixed bottom-6 right-6 z-[200] hide', 3500);
+    }
+</script>
+</body>
+</html>
