@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "/api";
 
 const api = {
     async request(endpoint, method = 'GET', body = null) {
@@ -12,7 +12,7 @@ const api = {
 
         try {
             const response = await fetch(`${API_BASE}${endpoint}`, config);
-            
+
             if (response.status === 401 || response.status === 403) {
                 logout(); // Session expired or unauthorized
                 return;
