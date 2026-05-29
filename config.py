@@ -14,8 +14,8 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FLW_SECRET_KEY = os.environ.get('FLW_SECRET_KEY')
-    SMTP_SERVER = os.environ.get('SMTP_SERVER')
-    SMTP_PORT = os.environ.get('SMTP_PORT', 587)
-    SMTP_USERNAME = os.environ.get('SMTP_USERNAME')
-    SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+    # Resend (transactional email - replaces SMTP)
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
+    RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'Zikani Music <onboarding@resend.dev>')
+    MANAGEMENT_EMAIL = os.environ.get('MANAGEMENT_EMAIL')
     SEND_FILE_MAX_AGE_DEFAULT = 0
